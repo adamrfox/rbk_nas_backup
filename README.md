@@ -27,7 +27,7 @@ Other notes:
 
 If the fileset chosen is not currently associated with the share, the script will make that association.  In this case, an SLA domain will be required.  If it is not specified on the command line, the script will prompt the user for one.  The script does not create new SLA domains or new fileset templates. 
 
-If the filetset chosen is already associated with share and no SLA is given on the CLI, the script will assume you want to use the SLA currently assigned to the fileset.  If no SLA is assigned to that fileset, then the backup will have "No SLA" and will be an Unmanaged Object and must be managed by the user on the Rubrik cluster.
+If the fileset chosen is already associated with share and no SLA is given on the CLI, the script will assume you want to use the SLA currently assigned to the fileset.  If no SLA is assigned to that fileset, then the backup will have "No SLA" and will be an Unmanaged Object and must be managed by the user on the Rubrik cluster.
 
 The script does not currently show backup progress.  Job progress can be tracked on the Rubrik cluster.  Tracking the backup progress in the script could be done.  Raise an issue if this is important.
 
