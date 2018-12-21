@@ -165,6 +165,6 @@ while not bu_done:
   else:
     print "Status = " + bu_status
     time.sleep(5)
-if post_script:
+if post_script an bu_status == "SUCCEEDED":
   print "Executing " + post_script
   subprocess.call (post_script, shell=True)
