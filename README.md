@@ -29,3 +29,5 @@ If the fileset chosen is not currently associated with the share, the script wil
 If the filetset chosen is already associated with share and no SLA is given on the CLI, the script will assume you want to use the SLA currently assigned to the fileset.  If no SLA is assigned to that fileset, then the backup will have "No SLA" and will be an Unmanaged Object and must be managed by the user on the Rubrik cluster.
 
 The script does not currently show backup progress.  Job progress can be tracked on the Rubrik cluster.  Tracking the backup progress in the script could be done.  Raise an issue if this is important.
+
+This script uses the Rubrik Python SDK.  That will need to be installed in order for the script to run.  The SDK is available here:  https://github.com/rubrikinc/rubrik-sdk-for-python.
