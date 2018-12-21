@@ -3,7 +3,7 @@ A script to run a NAS backup with pre and post scripts
 
 The idea here is to have Rubrik run a NAS backup and have the option for a pre-script and/or a post-script.  Here is the basic
 syntax:
-
+```
 Usage: rbk_nas_backup.py [-b host:share] [-f fileset] [-c user:password] [-P pre_script] [-p post_script] [-h] rubrik
 -b | --backup= : specify a host and a share/export
 -f | --fileset= : specify a fileset
@@ -12,6 +12,7 @@ Usage: rbk_nas_backup.py [-b host:share] [-f fileset] [-c user:password] [-P pre
 -p | --post= : Specify a script to run after the backup
 -h | --help : Prints this message
 rubrik : Name or IP of Rubrik
+```
 
 Most of the command-line options are optional and, if needed, the script will prompt the user for the needed information.
 
