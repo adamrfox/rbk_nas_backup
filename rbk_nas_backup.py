@@ -49,6 +49,8 @@ pre_script = ""
 post_script = ""
 share_id = ""
 fileset = ""
+user = ""
+password = ""
 bu_status_url = ()
 build_fileset = False
 optlist, args = getopt.getopt(sys.argv[1:], 'P:p:s:f:b:c:h', ['pre=', 'post=', 'sla=','fileset=', 'backup=', 'creds=', 'help'])
