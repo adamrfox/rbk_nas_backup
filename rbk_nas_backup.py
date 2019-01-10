@@ -8,28 +8,13 @@ import urllib
 import urllib3
 import time
 import subprocess
-import requests
 urllib3.disable_warnings()
 
 def get_sla_data (rubrik, vers, name):
   name = urllib.quote_plus(name)
   sla_data = rubrik.get('v1', str("/sla_domain?primary_cluster=local&name=" + name))
-# Commented out until v2 works with the SDK.  Work-around in the mean time
   if sla_data['total'] == 0 and vers > 4:
-#    sla_data = rubrik.get('v2', str("/sla_domain?primary_cluster=local&name=" + name))
-# Hack-around starts here
-    global rubrik_cluster
-    global user
-    global password
-    url = "https://" + rubrik_cluster + "/api/v2/sla_domain?primary_cluster=local&name=" + name
-    resp = requests.get (url, verify=False, auth=(user, password)).json()
-    try:
-      resp['errors']
-    except KeyError: return(resp)
-    except TypeError: return(resp)
-    sys.stderr.write ("ERROR: " + resp['errors'][0]['message'] + "\n")
-    exit (1)
-# Hack ends here
+    sla_data = rubrik.get('v2', str("/sla_domain?primary_cluster=local&name=" + name))
   return (sla_data)
 
 def usage ():
