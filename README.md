@@ -31,6 +31,6 @@ If the fileset chosen is already associated with share and no SLA is given on th
 
 The script does not currently show backup progress.  Job progress can be tracked on the Rubrik cluster.  Tracking the backup progress in the script could be done.  Raise an issue if this is important.
 
-This script uses the Rubrik Python SDK.  That will need to be installed in order for the script to run.  The SDK is available here:  https://github.com/rubrikinc/rubrik-sdk-for-python.
+This script uses the Rubrik Python SDK v1.0.11 or higher.  That will need to be installed in order for the script to run.  The SDK is available here:  https://github.com/rubrikinc/rubrik-sdk-for-python.
 
 The post script only runs if the backup job succeeds.  Raise an issue if an opion to over-ride this makes sense.
