@@ -104,7 +104,7 @@ except IndexError:
       sys.stderr.write("Can't find SLA: " + sla_name + "\n")
       exit (2)
   fs_config = {}
-  fs_config = {"shareId" : str(share_id), "templateId": str(template_id), "slaIDi" : str(sla_id)}
+  fs_config = {"shareId" : str(share_id), "templateId": str(template_id), "slaID" : str(sla_id)}
   fs_create = rubrik.post('v1', '/fileset', fs_config)
   fs_id = fs_create['id']
   build_fileset = True
