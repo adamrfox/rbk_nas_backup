@@ -8,6 +8,7 @@ import getpass
 import urllib3
 import time
 import subprocess
+from codecs import decode,encode
 if int(sys.version[0]) >= 3:
   import urllib.parse
 else:
@@ -23,6 +24,30 @@ def get_sla_data (rubrik, vers, name):
   if sla_data['total'] == 0 and vers > 4:
     sla_data = rubrik.get('v2', str("/sla_domain?primary_cluster=local&name=" + name))
   return (sla_data)
+
+def get_creds_from_file(file):
+  with open(file) as fp:
+    data = fp.read()
+    fp.close()
+    if int(sys.version[0]) > 2:
+      data = str.encode(data)
+      data = decode(data, 'uu')
+      data = decode(str(data), 'rot13')
+      data = data.replace("o'", "")
+      lines = data.split('\\a')
+    else:
+      data = decode(bytes(data), 'uu')
+      data = decode(data, 'rot13')
+      lines = data.splitlines()
+    for x in lines:
+      if x == "":
+        continue
+      xs = x.split(':')
+      if xs[0] == "rubrik":
+        ntap_user = xs[1]
+        ntap_password = xs[2]
+    return (ntap_user, ntap_password)
+
 
 def usage ():
   sys.stderr.write ("Usage: rbk_nas_backup.py [-b host:share] [-f fileset] [-c user:password] [-P pre_script] [-p post_script] [-h] rubrik\n")
@@ -62,9 +87,11 @@ for opt, a in optlist:
   if opt in ('-f', "--fileset"):
     fileset = a
   if opt in ('-c', "--creds"):
-    creds = a.split(':')
-    user = creds[0]
-    password = creds[1]
+    if ':' in a:
+      (user, password) = a.split(':')
+    else:
+      (user, password) = get_creds_from_file(a)
+    print("USER: " + user + " // PW: " + password)
   if opt in ('-h', "--help"):
     usage()
 rubrik_cluster = args[0]
@@ -85,6 +112,7 @@ if user == "":
     user = input("User: ")
 if password == "":
   password = getpass.getpass ("Password: ")
+print("USER: " + user + " // PW: " + password)
 rubrik = rubrik_cdm.Connect (rubrik_cluster, user, password)
 version = rubrik.cluster_version().split('.')
 version_maj = int(version[0])
