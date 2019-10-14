@@ -91,7 +91,6 @@ for opt, a in optlist:
       (user, password) = a.split(':')
     else:
       (user, password) = get_creds_from_file(a)
-    print("USER: " + user + " // PW: " + password)
   if opt in ('-h', "--help"):
     usage()
 rubrik_cluster = args[0]
