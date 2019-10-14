@@ -1,17 +1,24 @@
 #!/usr/bin/python
 
+from __future__ import print_function
 import rubrik_cdm
 import getopt
 import sys
 import getpass
-import urllib
 import urllib3
 import time
 import subprocess
+if int(sys.version[0]) >= 3:
+  import urllib.parse
+else:
+  import urllib
 urllib3.disable_warnings()
 
 def get_sla_data (rubrik, vers, name):
-  name = urllib.quote_plus(name)
+  if int(sys.version[0]) < 3:
+    name = urllib.quote_plus(name)
+  else:
+    name = urllib.parse.quote(name)
   sla_data = rubrik.get('v1', str("/sla_domain?primary_cluster=local&name=" + name))
   if sla_data['total'] == 0 and vers > 4:
     sla_data = rubrik.get('v2', str("/sla_domain?primary_cluster=local&name=" + name))
@@ -46,7 +53,10 @@ for opt, a in optlist:
     post_script = a
   if opt in ('-s', "--sla"):
     sla = a
-    sla_url = urllib.quote_plus(sla)
+    if int(sys.version[0]) < 3:
+      sla_url = urllib.quote_plus(sla)
+    else:
+      sla_url = urllib.parse.quote(sla)
   if opt in ('-b', "--backup"):
     backup = a
   if opt in ('-f', "--fileset"):
@@ -59,15 +69,22 @@ for opt, a in optlist:
     usage()
 rubrik_cluster = args[0]
 if backup == "":
-  backup = raw_input ("Backup (host:share): ")
+  if int(sys.version[0]) < 3:
+    backup = raw_input ("Backup (host:share): ")
+  else:
+    backup = input("Backup (host:share): ")
 if fileset == "":
-  fileset = raw_input ("Fileset Name: ")
+  if int(sys.version[0]) < 3:
+    fileset = raw_input ("Fileset Name: ")
+  else:
+    fileset = input("Fileset Name: ")
 if user == "":
-  user = raw_input ("User: ")
+  if int(sys.version[0]) < 3:
+    user = raw_input ("User: ")
+  else:
+    user = input("User: ")
 if password == "":
   password = getpass.getpass ("Password: ")
-print "RUBRIK = " + rubrik_cluster
-print args
 rubrik = rubrik_cdm.Connect (rubrik_cluster, user, password)
 version = rubrik.cluster_version().split('.')
 version_maj = int(version[0])
@@ -116,14 +133,14 @@ if not build_fileset:
     sla_name = fs_data['data'][0]['configuredSlaDomainName']
   else:
     found = False
-    sla_data = get_sla_data (rubrik, version_maj, sla_name)
+    sla_data = get_sla_data (rubrik, version_maj, sla)
     for s in sla_data['data']:
       if s['name'] == sla:
         found = True
         sla_id = s['id']
         sla_name = s['name']
     if not found and version_maj > 4:
-      sla_data = get_sla_data(rubrik, version_maj, sla_name)
+      sla_data = get_sla_data(rubrik, version_maj, sla)
       for s in sla_data['data']:
         if s['name'] == sla:
           found = True
@@ -133,8 +150,9 @@ if not build_fileset:
       sys.stderr.write ("Can't find SLA: " + sla + "\n")
       exit (2)
 if pre_script:
+  print("Executing " + pre_script)
   subprocess.call(pre_script, shell=True)
-print "Starting Backup..."
+print("Starting Backup...")
 bu_config = {}
 bu_config = {"slaId" : str(sla_id)}
 bu_status = rubrik.post ('v1', '/fileset/' + str(fs_id) + "/snapshot", bu_config)
@@ -152,8 +170,8 @@ while not bu_done:
     sys.stderr.write ("Job ended with status: " + str(bu_job_status['status']) + "\n")
     bu_done = True
   else:
-    print "Status = " + bu_status
+    print("Status = " + bu_status)
     time.sleep(5)
 if post_script and bu_status == "SUCCEEDED":
-  print "Executing " + post_script
+  print("Executing " + post_script)
   subprocess.call (post_script, shell=True)
