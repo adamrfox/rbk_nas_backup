@@ -141,13 +141,18 @@ except IndexError:
     sys.stderr.write("Fileset not found\n")
     exit (2)
   if sla == "":
-    sla_name = raw_input ("SLA Domain: ")
-    sla_data = get_sla_data (rubrik, version_maj, sla_name)
-    try:
-      sla_id = sla_data['data'][0]['id']
-    except IndexError:
-      sys.stderr.write("Can't find SLA: " + sla_name + "\n")
-      exit (2)
+    if int(sys.version[0]) < 3:
+      sla_name = raw_input ("SLA Domain: ")
+    else:
+      sla_name = input("SLA Domain: ")
+  else:
+    sla_name = sla
+  sla_data = get_sla_data (rubrik, version_maj, sla_name)
+  try:
+    sla_id = sla_data['data'][0]['id']
+  except IndexError:
+    sys.stderr.write("Can't find SLA: " + sla_name + "\n")
+    exit (2)
   fs_config = {}
   fs_config = {"shareId" : str(share_id), "templateId": str(template_id), "slaID" : str(sla_id)}
   fs_create = rubrik.post('v1', '/fileset', fs_config)
