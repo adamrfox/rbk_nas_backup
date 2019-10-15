@@ -111,7 +111,6 @@ if user == "":
     user = input("User: ")
 if password == "":
   password = getpass.getpass ("Password: ")
-print("USER: " + user + " // PW: " + password)
 rubrik = rubrik_cdm.Connect (rubrik_cluster, user, password)
 version = rubrik.cluster_version().split('.')
 version_maj = int(version[0])
