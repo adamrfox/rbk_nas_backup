@@ -8,18 +8,10 @@ import getpass
 import urllib3
 import time
 import subprocess
-from codecs import decode,encode
-if int(sys.version[0]) >= 3:
-  import urllib.parse
-else:
-  import urllib
+from codecs import decode
 urllib3.disable_warnings()
 
 def get_sla_data (rubrik, vers, name):
-  if int(sys.version[0]) < 3:
-    name = urllib.quote_plus(name)
-  else:
-    name = urllib.parse.quote(name)
   sla_data = rubrik.get('v1', str("/sla_domain?primary_cluster=local&name=" + name))
   if sla_data['total'] == 0 and vers > 4:
     sla_data = rubrik.get('v2', str("/sla_domain?primary_cluster=local&name=" + name))
@@ -78,10 +70,6 @@ for opt, a in optlist:
     post_script = a
   if opt in ('-s', "--sla"):
     sla = a
-    if int(sys.version[0]) < 3:
-      sla_url = urllib.quote_plus(sla)
-    else:
-      sla_url = urllib.parse.quote(sla)
   if opt in ('-b', "--backup"):
     backup = a
   if opt in ('-f', "--fileset"):
