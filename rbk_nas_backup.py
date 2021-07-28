@@ -62,7 +62,8 @@ user = ""
 password = ""
 bu_status_url = ()
 build_fileset = False
-optlist, args = getopt.getopt(sys.argv[1:], 'P:p:s:f:b:c:h', ['pre=', 'post=', 'sla=','fileset=', 'backup=', 'creds=', 'help'])
+direct_archive = False
+optlist, args = getopt.getopt(sys.argv[1:], 'P:p:s:f:b:c:Dh', ['pre=', 'post=', 'sla=','fileset=', 'backup=', 'creds=', 'direct_archive', 'help'])
 for opt, a in optlist:
   if opt in ('-P', "--pre"):
     pre_script = a
@@ -79,6 +80,8 @@ for opt, a in optlist:
       (user, password) = a.split(':')
     else:
       (user, password) = get_creds_from_file(a)
+  if opt in ('-D', "--direct_archive"):
+    direct_archive = True
   if opt in ('-h', "--help"):
     usage()
 rubrik_cluster = args[0]
@@ -173,13 +176,14 @@ if pre_script:
   subprocess.call(pre_script, shell=True)
 print("Starting Backup...")
 bu_config = {}
-bu_config = {"slaId" : str(sla_id)}
+bu_config = {"slaId" : str(sla_id), "isPassthrough": direct_archive}
 bu_status = rubrik.post ('v1', '/fileset/' + str(fs_id) + "/snapshot", bu_config)
 bu_status_url = str(bu_status['links'][0]['href']).split('/')
 bu_status_path = "/" + "/".join(bu_status_url[5:])
 bu_done = False
 while not bu_done:
   bu_job_status = rubrik.get ('v1', bu_status_path)
+  print("STATUS: " + str(bu_job_status))
   bu_status = str(bu_job_status['status'])
   if bu_status == "RUNNING" or bu_status == "QUEUED" or bu_status == "ACQUIRING" or bu_status == "FINISHING":
     time.sleep(5)
