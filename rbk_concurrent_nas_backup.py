@@ -53,9 +53,9 @@ def get_job_queue(hs_data, sla_data, fs_data, infile, def_sla):
     print("Generating Job Queue")
     with open(infile) as fp:
         for line in fp:
+            line = line.rstrip()
             if not line or line.startswith('#'):
                 continue
-            line = line.rstrip()
             lf = line.split(',')
             hs_id = get_hs_id(hs_data, lf[0], lf[1])
             if hs_id == "":
