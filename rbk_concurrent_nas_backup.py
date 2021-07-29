@@ -48,8 +48,9 @@ def get_fs_id(hs_id, fs_data):
             continue
     return(fs_id_list)
 
-def get_job_queue(hs_data, sla_data, fs_data, infile, def_sla):
+def get_job_queue(hs_data, sla_data, fs_data, infile, default_host, def_sla, default_fileset):
     new_job_queue = []
+    def_fst_id = ""
     print("Generating Job Queue")
     with open(infile) as fp:
         for line in fp:
@@ -57,25 +58,43 @@ def get_job_queue(hs_data, sla_data, fs_data, infile, def_sla):
             if not line or line.startswith('#'):
                 continue
             lf = line.split(',')
-            hs_id = get_hs_id(hs_data, lf[0], lf[1])
+            if default_host:
+                host = default_host
+                share = lf[0]
+            else:
+                host = lf[0]
+                share = lf[1]
+            hs_id = get_hs_id(hs_data, host, share)
             if hs_id == "":
                 sys.stderr.write("Can't find " + lf[0] + ":" + lf[1] + ". Skipping\n")
                 continue
-            if len(lf) == 2:
+            if def_sla:
                 sla_id = get_sla_id(sla_data, def_sla)
-            elif len(lf) == 3:
-                sla_id = get_sla_id(sla_data, lf[2])
+                sla = def_sla
+            else:
+                sla_id = get_sla_id(sla_data, lf[-1])
+                sla = lf[-1]
                 if sla_id == "":
-                    sys.stderr.write("Can't find SLA: " + lf[4] + ". Skipping\n")
+                    sys.stderr.write("Can't find SLA: " + sla + ". Skipping\n")
                     continue
             fs_id_list = get_fs_id(hs_id, fs_data)
             if len(fs_id_list) == 0:
-                sys.stderr.write("Can't find fileset for " + lf[0] + ":" + lf[1] + ". Skipping\n")
-                continue
+                if not default_fileset:
+                    sys.stderr.write("Can't find fileset for " + host + ":" + share + ". Skipping\n")
+                    continue
+                if not def_fst_id:
+                    for f in fs_data['data']:
+                        if f['name'] == default_fileset:
+                            def_fst_id = f['id']
+                            fs_id = f['id']
+                else:
+                    fs_id = f['id']
             elif len(fs_id_list) > 1:
-                sys.stderr.write("Found multiple filsetsets for " + lf[0] + ":" + lf[1] + ". Skipping\n")
+                sys.stderr.write("Found multiple filsets for " + host + ":" + share + ". Skipping\n")
                 continue
-            new_job_queue.append({'host': lf[0], 'share': lf[1], 'hs_id': hs_id, 'sla_id': sla_id, 'fs_id': fs_id_list[0]})
+            else:
+                fs_id = fs_id_list[0]
+            new_job_queue.append({'host': host, 'share': share, 'hs_id': hs_id, 'sla_id': sla_id, 'fs_id': fs_id})
     fp.close()
     if RESTART:
         epoch = datetime.strptime("1970-01-01T00:00:00", "%Y-%m-%dT%H:%M:%S")
@@ -98,7 +117,8 @@ def get_job_queue(hs_data, sla_data, fs_data, infile, def_sla):
                     j['time'] = 0
         for dj in job_delete_queue:
             new_job_queue.remove(dj)
-        new_job_queue.sort(key=operator.itemgetter('time'))
+        if SORT_ON_TIME:
+            new_job_queue.sort(key=operator.itemgetter('time'))
         dprint("\nJOB_QUEUE: " + str(new_job_queue))
         print("QUEUE LENGTH:" + str(len(new_job_queue)))
         print("ALREADY RUNNING JOBS: " + str(len(running_jobs)))
@@ -115,13 +135,17 @@ if __name__ == "__main__":
     max_jobs = 2
     jobs_running = []
     default_sla = ""
+    default_host = ""
+    default_fileset = ""
     timeout = 60
     NAS_DA = False
     running_status_list = ['RUNNING', 'QUEUED', 'ACQUIRING', 'FINISHING']
     RESTART = True
+    SORT_ON_TIME = False
 
-    optlist, args = getopt.getopt(sys.argv[1:], 'hDc:t:ms:f', ['--help', '--DEBUG', '--creds=', '--token=', '--max_jobs=',
-                                                               '--sla=', '--flush'])
+    optlist, args = getopt.getopt(sys.argv[1:], 'hDc:t:ms:Fn:f:dS', ['--help', '--DEBUG', '--creds=', '--token=', '--max_jobs=',
+                                                               '--sla=', '--flush', '--nas_host=', '--fileset=', '--nas_da',
+                                                                '--sort_on_time'])
     for opt, a in optlist:
         if opt in ('-h', '--help'):
             usage()
@@ -135,8 +159,16 @@ if __name__ == "__main__":
             max_jobs = int(a)
         if opt in ('-s', '--sla'):
             default_sla = a
-        if opt in ('-f', '--flush'):
+        if opt in ('-F', '--flush'):
             RESTART = False
+        if opt in ('-n', '--nas_host'):
+            default_host = a
+        if opt in ('-f', '--fileset'):
+            default_fileset = a
+        if opt in ('-d', '--nas_da'):
+            NAS_DA = True
+        if opt in ('-S', '--sort_on_time'):
+            SORT_ON_TIME = True
 
     try:
         (infile, rubrik_host) = args
@@ -163,7 +195,7 @@ if __name__ == "__main__":
     if fs_data['total'] == 0:
         sys.stderr.write("No Filesets found\n")
         exit(3)
-    (job_queue, jobs_running) = get_job_queue(hs_data, sla_data, fs_data, infile, default_sla)
+    (job_queue, jobs_running) = get_job_queue(hs_data, sla_data, fs_data, infile, default_host, default_sla, default_fileset)
     while(job_queue or jobs_running):
         if len(jobs_running) < max_jobs:
             try:
