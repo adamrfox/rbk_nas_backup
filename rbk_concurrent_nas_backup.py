@@ -149,6 +149,7 @@ def get_job_queue(hs_data, sla_data, fs_data, infile, default_host, def_sla, def
                     continue
             fs_id_list = get_fs_id(hs_id, fs_data)
             if len(fs_id_list) == 0:
+                print("Creating fileset on " + host + ":" + share)
                 fs_id = add_template_to_share(hs_id, def_fst_id)
             elif len(fs_id_list) > 1:
                 sys.stderr.write("Found multiple filsets for " + host + ":" + share + ". Skipping\n")
