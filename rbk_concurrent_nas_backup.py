@@ -309,6 +309,7 @@ if __name__ == "__main__":
                 new_job = job_queue.pop(0)
                 print ("Starting Backup of " + new_job['host'] + ":" + new_job['share'])
                 bu_config = {'slaId': new_job['sla_id'], 'isPassthrough': NAS_DA}
+                dprint("NEW JOB CONFIG:" + str(bu_config))
                 bu_status = rubrik.post('v1', '/fileset/' + str(new_job['fs_id']) + "/snapshot", bu_config, timeout=timeout)
                 dprint("JOB: " + str(bu_status))
                 bu_status_url = str(bu_status['links'][0]['href']).split('/')
