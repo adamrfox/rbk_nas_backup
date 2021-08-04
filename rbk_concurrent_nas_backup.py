@@ -199,6 +199,9 @@ def get_job_queue(hs_data, sla_data, fs_data, infile, default_host, def_sla, def
         print("QUEUE LENGTH:" + str(len(new_job_queue)))
         print("ALREADY RUNNING JOBS: " + str(len(running_jobs)))
         return(new_job_queue, running_jobs, completed_job_queue)
+    else:
+        fp = open(log_file, "w")
+        fp.close()
     return(new_job_queue, [], [])
 
 def log_job(lfile, job, job_status):
