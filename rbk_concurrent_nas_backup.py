@@ -10,13 +10,26 @@ import operator
 import urllib3
 urllib3.disable_warnings()
 import rubrik_cdm
-import os.path
 from os import path
 
 
 
 def usage():
-    print("Usage goes here!")
+    sys.stderr.write("Usage: rbk_concurrent_nas_backup.py [-hDdSF] [-c creds] [-t token] [-m jobs] [-s sla] [-n nas_host] [-f fileset] [-r minutes] file rubrik\n")
+    sys.stderr.write("-h | --help : Prints this message\n")
+    sys.stderr.write("-D | --DEBUG : Debug mode.  Verbose output for debugging\n")
+    sys.stderr.write("-d | --nas_da : Set NAS DA when assigning a fileset to a share [default: False]\n")
+    sys.stderr.write("-S | --sort_on_time : Sort jobs to be run by last backups time [default: False]\n")
+    sys.stderr.write("-F | --flush : Don't try to restart clean (check for running and completed jobs)\n")
+    sys.stderr.write("-c | --creds : Credentials for Rubrik [user:password]\n")
+    sys.stderr.write("-t | --token : API Token for Rubrik\n")
+    sys.stderr.write("-m | --max_jobs : Maximum number of concurrent backup jobs [default: 2]\n")
+    sys.stderr.write("-s | --sla : Set a default SLA instead of specifying in the file\n")
+    sys.stderr.write("-n | --nas_host : Set a default NAS host instead of specifying it in the file\n")
+    sys.stderr.write("-f | --fileset : Set a default fileset instead of specifying it in the file\n")
+    sys.stderr.write("-r | --report_time : Set a delay in reports to the screen in minutes [def: 0]\n")
+    sys.stderr.write("file : Input file for jobs\n")
+    sys.stderr.write("rubrik : Hostname or IP of the Rubrik cluster\n")
     exit(0)
 
 def dprint(message):
@@ -66,10 +79,8 @@ def compare_job_queues(done, new):
             if dj['host'] == n['host'] and dj['share'] == n['share']:
                 found = True
                 break
-        print("FOUND: " + str(found))
         if not found:
             return(False)
-    print("FUNC RETURNING TRUE")
     return(True)
 
 def check_job_status_log(log_file, new_job_queue):
@@ -103,7 +114,7 @@ def get_fst_id(rubrik, def_fst):
 
 def add_template_to_share(hs_id, fst_id):
     payload = [{'shareId': hs_id, 'templateId': fst_id, 'isPassthrough': NAS_DA, 'enableSymlinkResolution': False, 'enableHardlinkSupport': False}]
-    print("PAYLOAD " + str(payload))
+    dprint("PAYLOAD " + str(payload))
     new_fs = rubrik.post('internal', '/fileset/bulk', payload, timeout=timeout)
     return(new_fs['data'][0]['id'])
 
@@ -225,7 +236,7 @@ if __name__ == "__main__":
     REPORT_DELAY = 0
     pct_done = 0.0
 
-    optlist, args = getopt.getopt(sys.argv[1:], 'hDc:t:ms:Fn:f:dSr:', ['--help', '--DEBUG', '--creds=', '--token=', '--max_jobs=',
+    optlist, args = getopt.getopt(sys.argv[1:], 'hDc:t:m:s:Fn:f:dSr:', ['--help', '--DEBUG', '--creds=', '--token=', '--max_jobs=',
                                                                '--sla=', '--flush', '--nas_host=', '--fileset=', '--nas_da',
                                                                 '--sort_on_time', '--report_time='])
     for opt, a in optlist:
