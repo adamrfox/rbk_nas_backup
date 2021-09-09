@@ -55,14 +55,23 @@ def get_sla_id(sla_data, name):
             return(s['id'])
     return("")
 
-def get_fs_id(hs_id, fs_data):
+def get_fs_id(hs_id, fs_data, def_fst_id):
     fs_id_list = []
+    dprint("HS_ID: " + hs_id)
+    dprint("DEF_FST: " + def_fst_id)
     for f in fs_data['data']:
-        try:
-            if f['shareId'] == hs_id:
-                fs_id_list.append(f['id'])
-        except:
-            continue
+        if not def_fst_id:
+            try:
+                if f['shareId'] == hs_id:
+                    fs_id_list.append(f['id'])
+            except:
+                continue
+        else:
+            try:
+                if f['shareId'] == hs_id and f['templateId'] == def_fst_id:
+                    fs_id_list.append(f['id'])
+            except:
+                continue
     return(fs_id_list)
 
 def rewrite_log_file(log_file, done_jobs):
@@ -147,7 +156,8 @@ def get_job_queue(hs_data, sla_data, fs_data, infile, default_host, def_sla, def
                 if sla_id == "":
                     sys.stderr.write("Can't find SLA: " + sla + ". Skipping\n")
                     continue
-            fs_id_list = get_fs_id(hs_id, fs_data)
+            fs_id_list = get_fs_id(hs_id, fs_data, def_fst_id)
+            dprint("FS_ID_LIST: " + str(fs_id_list))
             if len(fs_id_list) == 0:
                 print("Creating fileset on " + host + ":" + share)
                 fs_id = add_template_to_share(hs_id, def_fst_id)
@@ -181,8 +191,8 @@ def get_job_queue(hs_data, sla_data, fs_data, infile, default_host, def_sla, def
         for dj in job_delete_queue:
             new_job_queue.remove(dj)
         completed_job_queue = check_job_status_log(log_file, new_job_queue)
-        print("NEW JOBS: " + str(new_job_queue))
-        print("COMPLETED: " + str(completed_job_queue))
+        dprint("NEW JOBS: " + str(new_job_queue))
+        dprint("COMPLETED: " + str(completed_job_queue))
         if completed_job_queue:
             print("Purging Completed Jobs")
             for cj in completed_job_queue:
@@ -239,6 +249,7 @@ if __name__ == "__main__":
     log_file = "job_log.csv"
     REPORT_DELAY = 0
     pct_done = 0.0
+    def_fst_id = ""
 
     optlist, args = getopt.getopt(sys.argv[1:], 'hDc:t:m:s:Fn:f:dSr:', ['--help', '--DEBUG', '--creds=', '--token=', '--max_jobs=',
                                                                '--sla=', '--flush', '--nas_host=', '--fileset=', '--nas_da',
