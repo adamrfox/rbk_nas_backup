@@ -241,7 +241,7 @@ if __name__ == "__main__":
     default_sla = ""
     default_host = ""
     default_fileset = ""
-    timeout = 60
+    timeout = 300
     NAS_DA = False
     running_status_list = ['RUNNING', 'QUEUED', 'ACQUIRING', 'FINISHING', 'TO_CANCEL']
     RESTART = True
