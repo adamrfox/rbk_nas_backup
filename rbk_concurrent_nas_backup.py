@@ -116,9 +116,9 @@ def check_job_status_log(log_file, new_job_queue):
 
 def get_fst_id(rubrik, def_fst):
     fst_data = rubrik.get('v1', '/fileset_template?name=' + def_fst, timeout=timeout)
+    dprint("/v1/fileset_template?name=" + def_fst)
     dprint("FST: ")
     dprint(fst_data)
-    dprint(fst_data['data'][0]['id'])
     try:
         return(fst_data['data'][0]['id'])
     except:
