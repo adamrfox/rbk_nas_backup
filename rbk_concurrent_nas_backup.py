@@ -303,8 +303,8 @@ if __name__ == "__main__":
             exit(2)
     hs_data = rubrik.get('internal', '/host/share', timeout=timeout)
     if DEBUG:
+        print("HOST=" + default_host)
         for h in hs_data['data']:
-            print("HOST=" + default_host)
             if h['hostname'] == default_host:
                print("FOUND " + h['hostname'] + ":" + h['exportPoint'])
     if hs_data['total'] == 0:
