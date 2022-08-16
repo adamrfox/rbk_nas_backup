@@ -302,8 +302,11 @@ if __name__ == "__main__":
             sys.stderr.write("Can't find default fileset template: " + default_fileset + "\n")
             exit(2)
     hs_data = rubrik.get('internal', '/host/share', timeout=timeout)
-    dprint("HS_DATA:")
-    dprint(hs_data)
+    if DEBUG:
+        for h in hs_data['data']:
+            print("HOST=" + default_host)
+            if h['hostname'] == default_host:
+               print("FOUND " + h['hostname'] + ":" + h['exportPoint'])
     if hs_data['total'] == 0:
         sys.stderr.write("No NAS Shares found.\n")
         exit(1)
